@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nộp hồ sơ đăng ký xét tuyển</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script>
+        // Loc danh sach nganh theo dot tuyen sinh duoc chon (du lieu nhung san trong the option)
+        function updateMajors() {
+            const sessionSelect = document.getElementById('sessionSelect');
+            const majorSelect = document.getElementById('majorSelect');
+            const selectedSessionId = sessionSelect.value;
+            Array.from(majorSelect.options).forEach(opt => {
+                opt.hidden = opt.dataset.sessionId !== selectedSessionId;
+            });
+            majorSelect.value = '';
+        }
+    </script>
+</head>
+<body onload="updateMajors()">
+<div th:replace="~{layout/fragments :: header}"></div>
+
+<main class="container py-5" style="max-width:600px;">
+    <h2 class="fw-bold mb-4" style="color:#1e3a8a;">Nộp hồ sơ đăng ký xét tuyển</h2>
+
+    <div th:if="${#lists.isEmpty(openSessions)}" class="alert alert-warning">
+        Hiện chưa có đợt tuyển sinh nào đang mở.
+    </div>
+
+    <form th:if="${!#lists.isEmpty(openSessions)}" th:action="@{/candidate/applications/create}" method="post">
+        <div class="mb-3">
+            <label class="form-label">Đợt tuyển sinh</label>
+            <select id="sessionSelect" name="sessionId" class="form-select" onchange="updateMajors()" required>
+                <option th:each="s : ${openSessions}" th:value="${s.id}" th:text="${s.name}"></option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Ngành đăng ký</label>
+            <select id="majorSelect" name="majorId" class="form-select" required>
+                <!-- Duyet 2 cap: dot tuyen sinh -> danh sach nganh trong dot do -->
+                <th:block th:each="s : ${openSessions}">
+                    <option th:each="sm : ${s.sessionMajors}"
+                            th:value="${sm.major.id}"
+                            th:attr="data-session-id=${s.id}"
+                            th:text="${sm.major.name} + ' (chỉ tiêu ' + ${sm.quota} + ')'"></option>
+                </th:block>
+            </select>
+        </div>
+        <button type="submit" class="btn text-white" style="background-color:#1e3a8a;">Tạo hồ sơ (bản nháp)</button>
+    </form>
+
+    <p class="text-muted small mt-3">
+        Sau khi tạo, bạn cần tải lên minh chứng và bấm "Nộp hồ sơ" để hoàn tất đăng ký.
+    </p>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

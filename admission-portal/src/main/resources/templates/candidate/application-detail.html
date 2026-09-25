@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết hồ sơ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header}"></div>
+
+<main class="container py-5" style="max-width:700px;">
+    <h2 class="fw-bold" style="color:#1e3a8a;">Chi tiết hồ sơ đăng ký</h2>
+
+    <div class="bg-white border rounded p-4 mt-3">
+        <p><strong>Đợt tuyển sinh:</strong> <span th:text="${app.admissionSession?.name ?: 'N/A'}"></span></p>
+        <p><strong>Ngành đăng ký:</strong> <span th:text="${app.major?.name ?: 'N/A'}"></span></p>
+        <p><strong>Trạng thái:</strong>
+            <span class="badge bg-info text-dark" th:text="${app.status?.label}"></span>
+        </p>
+        <p th:if="${app.submittedAt}">
+            <strong>Ngày nộp:</strong> <span th:text="${#temporals.format(app.submittedAt, 'dd/MM/yyyy HH:mm')}"></span>
+        </p>
+        <p th:if="${app.score != null}">
+            <strong>Điểm xét tuyển:</strong> <span th:text="${app.score}"></span>
+        </p>
+        <p th:if="${app.admissionCombination != null}">
+            <strong>Khối trúng tuyển:</strong> <span th:text="${app.admissionCombination.label}"></span>
+        </p>
+        <!-- Tom tat diem 6 mon thi sinh da tu nhap (chi hien khi da nhap du) -->
+        <div th:if="${app.mathScore != null}" class="mt-2 pt-2 border-top">
+            <p class="mb-1"><strong>Điểm 6 môn đã khai:</strong></p>
+            <p class="mb-1 text-secondary">
+                Toán: <span th:text="${app.mathScore}"></span> —
+                Ngữ văn: <span th:text="${app.literatureScore}"></span> —
+                Tiếng Anh: <span th:text="${app.englishScore}"></span>
+            </p>
+            <p class="mb-1 text-secondary" th:if="${app.subjectGroup != null and app.subjectGroup.name() == 'NATURAL'}">
+                Khối Tự nhiên — Vật lý: <span th:text="${app.physicsScore}"></span>,
+                Hóa học: <span th:text="${app.chemistryScore}"></span>,
+                Sinh học: <span th:text="${app.biologyScore}"></span>
+            </p>
+            <p class="mb-1 text-secondary" th:if="${app.subjectGroup != null and app.subjectGroup.name() == 'SOCIAL'}">
+                Khối Xã hội — Lịch sử: <span th:text="${app.historyScore}"></span>,
+                Địa lí: <span th:text="${app.geographyScore}"></span>,
+                GDCD: <span th:text="${app.civicScore}"></span>
+            </p>
+            <p class="mb-0 fw-bold" th:if="${app.totalSubjectScore != null}">
+                Tổng điểm: <span th:text="${app.totalSubjectScore}"></span> / 30
+            </p>
+        </div>
+    </div>
+
+    <!-- Nhap / sua diem 6 mon - chi cho phep khi ho so con o trang thai DRAFT hoac can bo sung -->
+    <div class="mt-4" th:if="${app.status != null and (app.status.name() == 'DRAFT' or app.status.name() == 'NEED_SUPPLEMENT')}">
+        <h5 class="fw-bold">Nhập điểm xét tuyển 6 môn</h5>
+        <div th:if="${scoreErrorMessage}" class="alert alert-danger" th:text="${scoreErrorMessage}"></div>
+
+        <form th:action="@{/candidate/applications/{id}/scores(id=${app.id})}" method="post" class="bg-white border rounded p-3">
+            <p class="fw-semibold mb-2">3 môn chính</p>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Toán</label>
+                    <input type="number" step="0.01" min="0" max="10" name="mathScore" class="form-control"
+                           th:value="${app.mathScore}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Ngữ văn</label>
+                    <input type="number" step="0.01" min="0" max="10" name="literatureScore" class="form-control"
+                           th:value="${app.literatureScore}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tiếng Anh</label>
+                    <input type="number" step="0.01" min="0" max="10" name="englishScore" class="form-control"
+                           th:value="${app.englishScore}" required>
+                </div>
+            </div>
+
+            <p class="fw-semibold mb-2">Chọn khối thi</p>
+            <div class="mb-3">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="subjectGroup" id="groupNatural" value="NATURAL"
+                           onclick="toggleSubjectGroup('NATURAL')" required
+                           th:checked="${app.subjectGroup != null and app.subjectGroup.name() == 'NATURAL'}">
+                    <label class="form-check-label" for="groupNatural">Khối Tự nhiên (Vật lý, Hóa học, Sinh học)</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="subjectGroup" id="groupSocial" value="SOCIAL"
+                           onclick="toggleSubjectGroup('SOCIAL')"
+                           th:checked="${app.subjectGroup != null and app.subjectGroup.name() == 'SOCIAL'}">
+                    <label class="form-check-label" for="groupSocial">Khối Xã hội (Lịch sử, Địa lí, GDCD)</label>
+                </div>
+            </div>
+
+            <div id="naturalFields" class="row mb-3" style="display:none;">
+                <div class="col-md-4">
+                    <label class="form-label">Vật lý</label>
+                    <input type="number" step="0.01" min="0" max="10" name="physicsScore" class="form-control"
+                           th:value="${app.physicsScore}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Hóa học</label>
+                    <input type="number" step="0.01" min="0" max="10" name="chemistryScore" class="form-control"
+                           th:value="${app.chemistryScore}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Sinh học</label>
+                    <input type="number" step="0.01" min="0" max="10" name="biologyScore" class="form-control"
+                           th:value="${app.biologyScore}">
+                </div>
+            </div>
+
+            <div id="socialFields" class="row mb-3" style="display:none;">
+                <div class="col-md-4">
+                    <label class="form-label">Lịch sử</label>
+                    <input type="number" step="0.01" min="0" max="10" name="historyScore" class="form-control"
+                           th:value="${app.historyScore}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Địa lí</label>
+                    <input type="number" step="0.01" min="0" max="10" name="geographyScore" class="form-control"
+                           th:value="${app.geographyScore}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Giáo dục công dân</label>
+                    <input type="number" step="0.01" min="0" max="10" name="civicScore" class="form-control"
+                           th:value="${app.civicScore}">
+                </div>
+            </div>
+
+            <button type="submit" class="btn text-white" style="background-color:#1e3a8a;">Lưu điểm</button>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        // An/hien 3 o diem theo khoi da chon, va bat buoc (required) dung 3 o dang hien
+        function toggleSubjectGroup(group) {
+            const naturalDiv = document.getElementById('naturalFields');
+            const socialDiv = document.getElementById('socialFields');
+            const naturalInputs = naturalDiv.querySelectorAll('input');
+            const socialInputs = socialDiv.querySelectorAll('input');
+
+            if (group === 'NATURAL') {
+                naturalDiv.style.display = 'flex';
+                socialDiv.style.display = 'none';
+                naturalInputs.forEach(i => i.required = true);
+                socialInputs.forEach(i => { i.required = false; });
+            } else {
+                naturalDiv.style.display = 'none';
+                socialDiv.style.display = 'flex';
+                naturalInputs.forEach(i => { i.required = false; });
+                socialInputs.forEach(i => i.required = true);
+            }
+        }
+
+        // Neu hồ sơ đã có khối được chọn từ trước (đang sửa lại điểm) -> tự hiện đúng khối đó khi tải trang
+        document.addEventListener('DOMContentLoaded', function () {
+            const checked = document.querySelector('input[name="subjectGroup"]:checked');
+            if (checked) {
+                toggleSubjectGroup(checked.value);
+            }
+        });
+    </script>
+
+    <!-- Upload minh chung - chi cho phep khi ho so con o trang thai DRAFT hoac can bo sung -->
+    <div class="mt-4" th:if="${app.status != null and (app.status.name() == 'DRAFT' or app.status.name() == 'NEED_SUPPLEMENT')}">
+        <h5 class="fw-bold">Tải lên minh chứng</h5>
+        <form th:action="@{/candidate/applications/{id}/upload(id=${app.id})}" method="post" enctype="multipart/form-data" class="row g-2">
+            <div class="col-md-5">
+                <select name="docType" class="form-select" required>
+                    <option th:each="type : ${documentTypes}" th:value="${type}" th:text="${type.label}"></option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <input type="file" name="file" class="form-control" required>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">Tải lên</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="mt-4">
+        <h5 class="fw-bold">Danh sách minh chứng đã nộp</h5>
+        <ul class="list-group">
+            <li class="list-group-item d-flex justify-content-between align-items-center"
+                th:each="doc : ${app.documents}">
+                <span>
+                    <span th:text="${doc.docType?.label} + ' — '"></span>
+                    <a th:href="@{/documents/{id}/view(id=${doc.id})}" target="_blank" th:text="${doc.fileName}"></a>
+                </span>
+                <span class="badge"
+                      th:classappend="${doc.status?.name() == 'VALID' ? 'bg-success' : (doc.status?.name() == 'INVALID' ? 'bg-danger' : 'bg-secondary')}"
+                      th:text="${doc.status?.label}"></span>
+            </li>
+            <li class="list-group-item text-muted" th:if="${#lists.isEmpty(app.documents)}">
+                Chưa có minh chứng nào được tải lên.
+            </li>
+        </ul>
+    </div>
+
+    <div class="mt-4" th:if="${app.status != null and app.status.name() == 'DRAFT'}">
+        <form th:action="@{/candidate/applications/{id}/submit(id=${app.id})}" method="post"
+              onsubmit="return confirm('Xác nhận nộp hồ sơ? Sau khi nộp bạn vẫn có thể bổ sung minh chứng nếu được yêu cầu.');">
+            <button type="submit" class="btn text-white" style="background-color:#1e3a8a;">Nộp hồ sơ</button>
+        </form>
+    </div>
+
+    <!-- Thi sinh da TRUNG TUYEN -> chi hien nut xuat giay bao trung tuyen -->
+    <div class="mt-4 p-4 border rounded bg-white" th:if="${app.status != null and app.status.name() == 'ADMITTED'}">
+        <h5 class="fw-bold text-success">🎉 Chúc mừng! Bạn đã trúng tuyển</h5>
+        <p class="text-secondary">
+            Vui lòng in Giấy báo trúng tuyển và mang theo cùng các giấy tờ liên quan đến trường làm thủ tục
+            nhập học theo đúng thời gian quy định.
+        </p>
+        <a th:href="@{/candidate/applications/{id}/admission-letter(id=${app.id})}" target="_blank"
+           class="btn btn-outline-success">📄 Xuất giấy báo trúng tuyển (PDF)</a>
+    </div>
+
+    <!-- Truong (staff) da xac nhan nhap hoc chinh thuc -->
+    <div class="mt-4 p-4 border rounded bg-white" th:if="${app.status != null and app.status.name() == 'ENROLLED'}">
+        <h5 class="fw-bold" style="color:#1e3a8a;">🎓 Bạn đã hoàn tất nhập học chính thức</h5>
+        <p class="text-secondary">Chúc mừng bạn đã chính thức trở thành sinh viên của trường!</p>
+        <a th:href="@{/candidate/applications/{id}/admission-letter(id=${app.id})}" target="_blank"
+           class="btn btn-outline-success">📄 Xuất giấy báo trúng tuyển (PDF)</a>
+    </div>
+
+    <!-- Khong trung tuyen -->
+    <div class="mt-4 p-4 border rounded bg-white" th:if="${app.status != null and app.status.name() == 'NOT_ADMITTED'}">
+        <h5 class="fw-bold text-danger">Rất tiếc, bạn không trúng tuyển đợt này</h5>
+        <p class="text-secondary mb-0">Cảm ơn bạn đã tham gia đăng ký xét tuyển.</p>
+    </div>
+
+    <a href="/candidate/dashboard" class="d-inline-block mt-4 text-muted">&larr; Quay lại danh sách hồ sơ</a>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

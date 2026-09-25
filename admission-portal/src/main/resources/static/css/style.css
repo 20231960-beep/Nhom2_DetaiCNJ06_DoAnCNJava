@@ -1,0 +1,18 @@
+body {
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-size: 1.25rem;
+}
+
+main {
+    min-height: 60vh;
+}
+
+/* Phan trang: cho tu xuong dong thay vi tran ra ngoai khung khi co nhieu trang */
+.pagination {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+}

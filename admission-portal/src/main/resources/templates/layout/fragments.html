@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head><title>fragments</title></head>
+<body>
+
+<header th:fragment="header">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color:#1e3a8a;">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">Cổng tuyển sinh trực tuyến</a>
+            <div class="collapse navbar-collapse justify-content-end">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" href="/login">Đăng nhập</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" href="/admin/dashboard">Quản trị</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" href="/admin/applications">Hồ sơ đăng ký</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('STAFF')">
+                        <a class="nav-link" href="/staff/dashboard">Xét duyệt hồ sơ</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('CANDIDATE')">
+                        <a class="nav-link" href="/candidate/dashboard">Hồ sơ của tôi</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('CANDIDATE')">
+                        <a class="nav-link" href="/candidate/profile">Thông tin cá nhân</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <span class="nav-link text-white-50">
+                            Xin chào, <span sec:authentication="name"></span>
+                        </span>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button class="btn btn-outline-light btn-sm ms-2" type="submit">Đăng xuất</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<footer th:fragment="footer" class="text-center text-muted py-4 mt-5 border-top">
+    <small>&copy; 2026 Cổng tuyển sinh trực tuyến &mdash; Đồ án môn Công nghệ Java</small>
+</footer>
+
+</body>
+</html>

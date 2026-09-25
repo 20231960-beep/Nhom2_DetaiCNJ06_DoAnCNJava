@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thống kê tuyển sinh</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header}"></div>
+
+<main class="container py-5">
+    <h2 class="fw-bold" style="color:#1e3a8a;">Thống kê tuyển sinh</h2>
+    <p class="text-secondary">Tổng quan số liệu hồ sơ đăng ký xét tuyển trong toàn hệ thống.</p>
+
+    <div class="row g-4 mt-1 mb-4">
+        <div class="col-md-4">
+            <div class="p-4 bg-white border rounded text-center">
+                <h1 class="fw-bold" style="color:#1e3a8a;" th:text="${totalApplications}">0</h1>
+                <p class="text-secondary mb-0">Tổng số hồ sơ đã nộp (không tính bản nháp)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="p-4 bg-white border rounded">
+                <h5 class="fw-bold mb-3">Số hồ sơ theo trạng thái</h5>
+                <canvas id="statusChart" height="260"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="p-4 bg-white border rounded">
+                <h5 class="fw-bold mb-3">Số hồ sơ theo ngành</h5>
+                <canvas id="majorChart" height="260"></canvas>
+                <p class="text-muted small mt-2 mb-0" th:if="${#lists.isEmpty(majorLabels)}">
+                    Chưa có dữ liệu hồ sơ để thống kê.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <a href="/admin/dashboard" class="d-inline-block mt-4 text-muted">&larr; Quay lại trang quản trị</a>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const statusLabels = /*[[${statusLabels}]]*/ [];
+    const statusCounts = /*[[${statusCounts}]]*/ [];
+    const majorLabels = /*[[${majorLabels}]]*/ [];
+    const majorCounts = /*[[${majorCounts}]]*/ [];
+    /*]]>*/
+
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusCounts,
+                backgroundColor: [
+                    '#94a3b8', '#38bdf8', '#fbbf24', '#22c55e',
+                    '#ef4444', '#16a34a', '#f97316', '#1e3a8a'
+                ]
+            }]
+        },
+        options: { plugins: { legend: { position: 'bottom' } } }
+    });
+
+    new Chart(document.getElementById('majorChart'), {
+        type: 'bar',
+        data: {
+            labels: majorLabels,
+            datasets: [{
+                label: 'Số hồ sơ',
+                data: majorCounts,
+                backgroundColor: '#1e3a8a'
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+</script>
+</body>
+</html>

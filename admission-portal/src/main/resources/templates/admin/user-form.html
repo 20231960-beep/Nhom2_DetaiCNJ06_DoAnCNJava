@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tài khoản</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header}"></div>
+
+<main class="container py-5" style="max-width:560px;">
+    <h2 class="fw-bold mb-4" style="color:#1e3a8a;"
+        th:text="${isEdit ? 'Sửa tài khoản' : 'Tạo tài khoản mới'}"></h2>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <form th:action="@{/admin/users/save}" th:object="${userRequest}" method="post">
+        <input type="hidden" th:field="*{id}">
+
+        <div class="mb-3">
+            <label class="form-label">Họ và tên</label>
+            <input type="text" th:field="*{fullName}" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" th:field="*{email}" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tên đăng nhập</label>
+            <input type="text" th:field="*{username}" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">
+                Mật khẩu
+                <span th:if="${isEdit}" class="text-muted small">(để trống nếu không muốn đổi mật khẩu)</span>
+            </label>
+            <input type="password" th:field="*{password}" class="form-control"
+                   th:required="${!isEdit}">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Vai trò</label>
+            <select th:field="*{role}" class="form-select" required>
+                <option th:each="r : ${roles}" th:value="${r}" th:text="${r.label}"></option>
+            </select>
+        </div>
+
+        <div class="form-check mb-3">
+            <input type="checkbox" th:field="*{enabled}" class="form-check-input" id="enabledCheck">
+            <label class="form-check-label" for="enabledCheck">Cho phép tài khoản đăng nhập (đang hoạt động)</label>
+        </div>
+
+        <button type="submit" class="btn text-white" style="background-color:#1e3a8a;">Lưu</button>
+        <a href="/admin/users" class="btn btn-outline-secondary">Hủy</a>
+    </form>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

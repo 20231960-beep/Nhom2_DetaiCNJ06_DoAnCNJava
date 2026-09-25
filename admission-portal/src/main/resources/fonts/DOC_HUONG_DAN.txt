@@ -1,0 +1,24 @@
+BẮT BUỘC: thêm 1 file font trước khi chạy chức năng "Xuất giấy báo trúng tuyển"
+================================================================================
+
+Thư mục này cần có 1 file font Unicode (.ttf) hỗ trợ tiếng Việt, đặt tên đúng là:
+
+    vietnamese-font.ttf
+
+iText (thư viện xuất PDF) mặc định KHÔNG vẽ được dấu tiếng Việt, nên bắt buộc
+phải nhúng 1 font Unicode thật vào PDF.
+
+Cách nhanh nhất (dùng font có sẵn trên máy Windows của bạn):
+1. Mở thư mục C:\Windows\Fonts
+2. Copy 1 file bất kỳ, ví dụ:
+   - times.ttf   (Times New Roman)
+   - arial.ttf   (Arial)
+2. Dán vào thư mục này (src/main/resources/fonts/)
+3. Đổi tên file vừa dán thành đúng: vietnamese-font.ttf
+4. Chạy lại project (Run trong NetBeans)
+
+Nếu muốn dùng font mã nguồn mở miễn phí thay thế (Roboto, Noto Sans, Open Sans...),
+tải file .ttf từ fonts.google.com rồi làm tương tự bước 2-4.
+
+Nếu thiếu file này, ứng dụng sẽ báo lỗi ngay khi khởi động (không chạy được),
+kèm thông báo rõ đường dẫn cần đặt file.
